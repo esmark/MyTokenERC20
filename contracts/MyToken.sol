@@ -2,6 +2,10 @@
 pragma solidity ^0.8.0;
 
 
+/// @title A simulator for trees
+/// @author Larry A. Gardner
+/// @notice You can use this contract for only the most basic simulation
+/// @dev All function calls are currently implemented without side effects
 // ----------------------------------------------------------------------------
 // Safe maths
 // ----------------------------------------------------------------------------
@@ -87,10 +91,10 @@ contract Owned {
 // token transfers
 // ----------------------------------------------------------------------------
 contract MyToken is ERC20Interface, Owned, SafeMath {
-    string public symbol;
-    string public  name;
-    uint8 public decimals;
-    uint public _totalSupply;
+    string public symbol = "MET";
+    string public name = "My ERC20 Token";
+    uint8 public decimals = 0;
+    uint public total_supply = 100000000;
 
     mapping(address => uint) balances;
     mapping(address => mapping(address => uint)) allowed;
@@ -100,12 +104,8 @@ contract MyToken is ERC20Interface, Owned, SafeMath {
     // Constructor
     // ------------------------------------------------------------------------
     constructor() public {
-        symbol = "MYT";
-        name = "MyToken";
-        decimals = 0;
-        _totalSupply = 100000000;
-        balances[0x4B6408E5De3D348C0cd571E67Aa2dDBDe563AD58] = _totalSupply;
-        emit Transfer(address(0), 0x4B6408E5De3D348C0cd571E67Aa2dDBDe563AD58, _totalSupply);
+        balances[msg.sender] = total_supply;
+        emit Transfer(address(0), msg.sender, total_supply);
     }
 
 
@@ -113,7 +113,7 @@ contract MyToken is ERC20Interface, Owned, SafeMath {
     // Total supply
     // ------------------------------------------------------------------------
     function totalSupply() public override view returns (uint) {
-        return _totalSupply - balances[address(0)];
+        return total_supply - balances[address(0)];
     }
 
 
@@ -191,14 +191,6 @@ contract MyToken is ERC20Interface, Owned, SafeMath {
         ApproveAndCallFallBack(spender).receiveApproval(msg.sender, tokens, address(this), data);
         return true;
     }
-
-
-    // ------------------------------------------------------------------------
-    // Don't accept ETH
-    // ------------------------------------------------------------------------
-    // function () external payable {
-    //     revert();
-    // }
 
 
     // ------------------------------------------------------------------------
