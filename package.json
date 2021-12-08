@@ -30,6 +30,7 @@
     "hardhat-docgen": "^1.2.0",
     "radspec": "^1.12.0",
     "solc": "^0.8.10",
+    "solidity-coverage": "^0.7.17",
     "ts-mocha": "^8.0.0",
     "ts-node": "^10.4.0",
     "typechain": "^3.0.0",

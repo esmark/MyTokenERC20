@@ -1,5 +1,7 @@
 require('dotenv').config();
 require("@nomiclabs/hardhat-waffle");
+//usePlugin('solidity-coverage');
+require('solidity-coverage');
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -23,6 +25,9 @@ module.exports = {
     rinkeby: {
       url: process.env.INFURA_URL,
       accounts: [`0x${process.env.PRIVATE_KEY}`]
+    },
+    coverage: {
+      url: 'http://localhost:8555'
     }
   },
   paths: {
