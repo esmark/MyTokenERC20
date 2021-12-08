@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+      "target": "es2018",
+      "module": "commonjs",
+      "strict": true,
+      "allowSyntheticDefaultImports": true,
+      "esModuleInterop": true,
+      "forceConsistentCasingInFileNames": true,
+      "skipLibCheck": true,
+      "outDir": "dist"
+    },
+    "include": ["./scripts", "./test", "./tasks"],
+    "files": ["hardhat.config.js"]
+  }

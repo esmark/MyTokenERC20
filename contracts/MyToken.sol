@@ -6,9 +6,8 @@ pragma solidity >=0.8.0;
 /// @author Kamil Khadeyev
 /// @notice You can use this contract for only the most basic simulation
 /// @dev All function calls are currently implemented without side effects
-/// ----------------------------------------------------------------------------
+
 /// Safe maths
-/// ----------------------------------------------------------------------------
 contract SafeMath {
     function safeAdd(uint a, uint b) public pure returns (uint c) {
         c = a + b;
@@ -29,10 +28,8 @@ contract SafeMath {
 }
 
 
-/// ----------------------------------------------------------------------------
 /// ERC Token Standard #20 Interface
 /// https:///github.com/ethereum/EIPs/blob/master/EIPS/eip-20-token-standard.md
-/// ----------------------------------------------------------------------------
 abstract contract ERC20Interface {
     function totalSupply() virtual public view returns (uint);
     function balanceOf(address tokenOwner) virtual public view returns (uint balance);
@@ -46,19 +43,14 @@ abstract contract ERC20Interface {
 }
 
 
-/// ----------------------------------------------------------------------------
 /// Contract function to receive approval and execute function in one call
-///
 /// Borrowed from MiniMeToken
-/// ----------------------------------------------------------------------------
 abstract contract ApproveAndCallFallBack {
     function receiveApproval(address from, uint256 tokens, address token, bytes memory data) virtual public;
 }
 
 
-/// ----------------------------------------------------------------------------
 /// Owned contract
-/// ----------------------------------------------------------------------------
 contract Owned {
     address public owner;
     address public newOwner;
@@ -87,10 +79,8 @@ contract Owned {
 }
 
 
-/// ----------------------------------------------------------------------------
 /// ERC20 Token, with the addition of symbol, name and decimals and assisted
 /// token transfers
-/// ----------------------------------------------------------------------------
 contract MyToken is ERC20Interface, Owned, SafeMath {
     string public symbol = "MET";
     string public name = "My ERC20 Token";
@@ -101,36 +91,28 @@ contract MyToken is ERC20Interface, Owned, SafeMath {
     mapping(address => mapping(address => uint)) allowed;
 
 
-    /// ------------------------------------------------------------------------
     /// Constructor
-    /// ------------------------------------------------------------------------
     constructor() public {
         balances[msg.sender] = total_supply;
         emit Transfer(address(0), msg.sender, total_supply);
     }
 
 
-    /// ------------------------------------------------------------------------
     /// Total supply
-    /// ------------------------------------------------------------------------
     function totalSupply() public override view returns (uint) {
         return total_supply - balances[address(0)];
     }
 
 
-    /// ------------------------------------------------------------------------
     /// Get the token balance for account tokenOwner
-    /// ------------------------------------------------------------------------
     function balanceOf(address tokenOwner) public override view returns (uint balance) {
         return balances[tokenOwner];
     }
 
 
-    /// ------------------------------------------------------------------------
     /// Transfer the balance from token owner's account to to account
     /// - Owner's account must have sufficient balance to transfer
     /// - 0 value transfers are allowed
-    /// ------------------------------------------------------------------------
     function transfer(address to, uint tokens) public override returns (bool success) {
         balances[msg.sender] = safeSub(balances[msg.sender], tokens);
         balances[to] = safeAdd(balances[to], tokens);
@@ -139,14 +121,12 @@ contract MyToken is ERC20Interface, Owned, SafeMath {
     }
 
 
-    /// ------------------------------------------------------------------------
     /// Token owner can approve for spender to transferFrom(...) tokens
     /// from the token owner's account
     ///
     /// https:///github.com/ethereum/EIPs/blob/master/EIPS/eip-20-token-standard.md
     /// recommends that there are no checks for the approval double-spend attack
     /// as this should be implemented in user interfaces 
-    /// ------------------------------------------------------------------------
     function approve(address spender, uint tokens) public override returns (bool success) {
         allowed[msg.sender][spender] = tokens;
         emit Approval(msg.sender, spender, tokens);
@@ -154,7 +134,6 @@ contract MyToken is ERC20Interface, Owned, SafeMath {
     }
 
 
-    /// ------------------------------------------------------------------------
     /// Transfer tokens from the from account to the to account
     /// 
     /// The calling account must already have sufficient tokens approve(...)-d
@@ -162,7 +141,6 @@ contract MyToken is ERC20Interface, Owned, SafeMath {
     /// - From account must have sufficient balance to transfer
     /// - Spender must have sufficient allowance to transfer
     /// - 0 value transfers are allowed
-    /// ------------------------------------------------------------------------
     function transferFrom(address from, address to, uint tokens) public override returns (bool success) {
         balances[from] = safeSub(balances[from], tokens);
         allowed[from][msg.sender] = safeSub(allowed[from][msg.sender], tokens);
@@ -172,20 +150,16 @@ contract MyToken is ERC20Interface, Owned, SafeMath {
     }
 
 
-    /// ------------------------------------------------------------------------
     /// Returns the amount of tokens approved by the owner that can be
     /// transferred to the spender's account
-    /// ------------------------------------------------------------------------
     function allowance(address tokenOwner, address spender) public override view returns (uint remaining) {
         return allowed[tokenOwner][spender];
     }
 
 
-    /// ------------------------------------------------------------------------
     /// Token owner can approve for spender to transferFrom(...) tokens
     /// from the token owner's account. The spender contract function
     /// receiveApproval(...) is then executed
-    /// ------------------------------------------------------------------------
     function approveAndCall(address spender, uint tokens, bytes memory data) public returns (bool success) {
         allowed[msg.sender][spender] = tokens;
         emit Approval(msg.sender, spender, tokens);
@@ -194,9 +168,7 @@ contract MyToken is ERC20Interface, Owned, SafeMath {
     }
 
 
-    /// ------------------------------------------------------------------------
     /// Owner can transfer out any accidentally sent ERC20 tokens
-    /// ------------------------------------------------------------------------
     function transferAnyERC20Token(address tokenAddress, uint tokens) public onlyOwner returns (bool success) {
         return ERC20Interface(tokenAddress).transfer(owner, tokens);
     }
