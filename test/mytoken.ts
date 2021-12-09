@@ -1,23 +1,32 @@
-const { expect } = require("chai");
-const { ethers } = require("hardhat");
+import { expect } from "chai";
+import { ethers } from "hardhat";
+import {Contract} from "ethers";
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
 describe('Token contract', () => {
-  let Token, token, owner, addr1, addr2;
+  let Token;
+  let token: Contract;
+  let owner: SignerWithAddress;
+  let addr1: SignerWithAddress;
+  let addr2: SignerWithAddress;
 
   beforeEach(async () => {
     Token = await ethers.getContractFactory('MyToken');
-    [owner, addr1, addr2, ...addrs] = await ethers.getSigners();
+    [owner, addr1, addr2] = await ethers.getSigners();
     token = await Token.deploy();
   });
 
   describe('Deployment', () => {
     it('Should set the right owner', async function () {
+      console.log('Token address: ' + token.owner());
+      console.log('Owner address: ' + owner.address);
       expect(await token.owner()).to.equal(owner.address);
     });
 
     it('Should assign the total supply of tokens to the owner', async () => {
       const ownerBalance = await token.balanceOf(owner.address);
       expect(await token.totalSupply()).to.equal(ownerBalance);
+      console.log('Owner balance: ' + ownerBalance);
     });
   });
 

@@ -82,15 +82,13 @@ contract MyToken is ERC20Interface {
     }
 
 
-    /// @notice Transfer tokens from the 
-    /// @param from account to the 
-    /// @param to account
+    /// @notice Transfer tokens from the @param from account to the @param to account
     /// 
     /// @notice The calling account must already have sufficient tokens approve(...)-d
     /// for spending from the from account and
-    /// - From account must have sufficient balance to transfer
-    /// - Spender must have sufficient allowance to transfer
-    /// - 0 value transfers are allowed
+    /// @param from account must have sufficient balance to transfer
+    /// @param to - Spender must have sufficient allowance to transfer
+    /// @param tokens - 0 value transfers are allowed
     function transferFrom(address from, address to, uint tokens) public override returns (bool) {
         balances[from] = balances[from] - tokens;
         allowed[from][msg.sender] = allowed[from][msg.sender] - tokens;
@@ -100,8 +98,9 @@ contract MyToken is ERC20Interface {
     }
 
 
-    /// @notice Returns the amount of tokens approved by the owner that can be
-    /// transferred to the spender's account
+    /// @notice Returns the amount of tokens approved by the 
+    /// @param tokenOwner that can be transferred to the 
+    /// @param spender's account
     function allowance(address tokenOwner, address spender) public override view returns (uint) {
         return allowed[tokenOwner][spender];
     }
