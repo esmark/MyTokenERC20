@@ -1,13 +1,10 @@
-//require('dotenv').config();
 import { config as dotenvConfig } from 'dotenv';
 dotenvConfig();
 import { NetworkUserConfig } from 'hardhat/types';
 import 'hardhat-docgen'
-//require("@nomiclabs/hardhat-waffle");
 import '@nomiclabs/hardhat-waffle';
 import '@typechain/hardhat';
 // import "@nomiclabs/hardhat-etherscan";
-//require('solidity-coverage');
 import "solidity-coverage";
 import "./tasks";
 
@@ -30,18 +27,6 @@ if (!process.env.INFURA_API_KEY) {
 } else {
   infuraApiKey = process.env.INFURA_API_KEY;
 }
-
-
-// This is a sample Hardhat task. To learn how to create your own go to
-// https://hardhat.org/guides/create-task.html
-/* task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
-  const accounts = await hre.ethers.getSigners();
-
-  for (const account of accounts) {
-    console.log(account.address);
-  }
-}); */
-
 
 function createNetworkConfig(
   network: keyof typeof chainIds,

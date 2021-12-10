@@ -1,3 +1,2 @@
-import './addAggregators.ts';
-import './upgrade';
-import './addAssets';
+import './accounts.ts';
+import './balance.ts';
