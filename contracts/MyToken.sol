@@ -56,8 +56,8 @@ contract MyToken is ERC20Interface {
     }
 
 
-    /// @notice Transfer the balance from token owner's account to to account
-    /// @param to - address of receiver. Owner's account must have sufficient balance to transfer
+    /// @notice Transfer the balance from token owner's account to 
+    /// @param to account (address of receiver). Owner's account must have sufficient balance to transfer
     /// @param tokens - 0 value transfers are allowed
     function transfer(address to, uint tokens) public override returns (bool) {
         require(tokens <= balances[msg.sender]);

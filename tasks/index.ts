@@ -1,2 +1,3 @@
-import './accounts.ts';
-import './balance.ts';
+import './accounts';
+import './balance';
+import './balances';
