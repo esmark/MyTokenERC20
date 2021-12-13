@@ -1,6 +1,8 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
+import "./Owned.sol";
+
 
 /// @title MyERC20Token token contract
 /// @author Kamil Khadeyev
@@ -26,7 +28,7 @@ interface ERC20Interface {
 /// @dev name of the token
 /// @dev decimals of the token = 0
 /// @dev total_supply total supply
-contract MyToken is ERC20Interface {
+contract MyToken is ERC20Interface, Owned {
     string public constant symbol = "MET";
     string public constant name = "My ERC20 Token";
     uint8 public constant decimals = 0;
