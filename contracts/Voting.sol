@@ -40,9 +40,9 @@ contract Voting is MyToken {
     Poll[] public polls;
 
     event Delegate(address indexed from, address indexed to, uint256 value);
-    event Vote(address indexed voter, uint256 pool, uint256 proposal, uint256 amount);
-    event StartPoll(address indexed recipient, bytes32 description, uint256 proposalCount, uint256 startedTime);
-    event FinishPoll(address indexed recipient, bytes32 description, bytes32 indexed winner, uint256 finishedTime);
+    event Vote(address indexed voter, bytes32 pollDescription, bytes32 proposalName, uint256 amount);
+    event StartVoting(address indexed recipient, bytes32 description, uint256 proposalCount, uint256 startedTime);
+    event FinishVoting(address indexed recipient, bytes32 description, bytes32 indexed winner, uint256 finishedTime);
  
 
 
@@ -146,14 +146,14 @@ contract Voting is MyToken {
 
 
 
-    /// @notice Has rights to withdraw amount
+    /// @notice Has rights to withdraw amount back
     function hasWithdrawRights() public view returns (bool) {
         Voter storage sender = voters[msg.sender];
-        require(sender.delegated == msg.sender, "First redelegate balance back to your address.");
+        require(sender.delegated == msg.sender, "Firstly redelegate balance back to your address.");
         require(sender.balance > 0, "The voter should has positive balance");
-        //Проверить: не закрыты ли опросы, где он участвует
+
         for (uint i = 0; i < polls.length; i++) {
-            require(polls[i].finished == false && sender.votedProposal[i] > 0, "You have voted not-finished votes");
+            require((polls[i].finished == true) || (polls[i].finished == false && sender.votedProposal[i] == 0), "You haven't finished votes");
         }
 
         return true;
@@ -165,11 +165,13 @@ contract Voting is MyToken {
     /// @param recipient.
     function hasVotingRecipient(address recipient) public view returns (bool) {
         require(recipient != address(0), "Disallow transfer to 0 address");
+
         for (uint i = 0; i < polls.length; i++) {
             if (polls[i].recipient == recipient) {
                 return true;
             }
         }
+
         return false;
     }
 
@@ -214,7 +216,7 @@ contract Voting is MyToken {
         polls[pollindex].createdAt = block.timestamp;
         polls[pollindex].finished = false;
 
-        emit StartPoll(recipient, description, proposalCount, polls[pollindex].createdAt);
+        emit StartVoting(recipient, description, proposalCount, polls[pollindex].createdAt);
     }
 
 
@@ -235,14 +237,14 @@ contract Voting is MyToken {
         // changes.
         polls[poll].proposals[proposal].votedBalance += sender.balance;
 
-        emit Vote(msg.sender, poll, proposal, sender.balance);
+        emit Vote(msg.sender, polls[poll].description, polls[poll].proposals[proposal].name, sender.balance);
 
         //Save voting for delegated persons
         for (uint i = 0; i < sender.delegators.length; i++) {
             voters[sender.delegators[i]].votedProposal[poll] = proposal;
             polls[poll].proposals[proposal].votedBalance += sender.delegate[sender.delegators[i]];
 
-            emit Vote(sender.delegators[i], poll, proposal, sender.delegate[sender.delegators[i]]);
+            emit Vote(sender.delegators[i], polls[poll].description, polls[poll].proposals[proposal].name, sender.delegate[sender.delegators[i]]);
         }
     }
 
@@ -258,7 +260,7 @@ contract Voting is MyToken {
             polling.finished = true;
             bytes32 winner = setWinner(poll);
 
-            emit FinishPoll(polling.recipient, polling.description, winner, block.timestamp);
+            emit FinishVoting(polling.recipient, polling.description, winner, block.timestamp);
         }
 
         return polling.finished;
