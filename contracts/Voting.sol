@@ -1,12 +1,13 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
-import "./MyToken.sol";
+import "./Owned.sol";
 
 
 /// @title Voting contract with collection and delegation functions
 /// @author Kamil Khadeyev
-contract Voting is MyToken {
+contract Voting is Owned {
+    address public tokenAddress;
     address public chairperson;
     uint256 public minimumQuorum;
     uint256 public debatingPeriod;
@@ -23,7 +24,7 @@ contract Voting is MyToken {
         uint256 balance; // common balance of the Poll
         address recipient; // address of contract where to send
         bytes32 description; // description of polling (up to 32 bytes)
-        bytes32 byteCode; // signiture of the function (up to 32 bytes)
+        bytes byteCode; // signiture of the function
         uint256 createdAt; // poll created timestamp
         Proposal[] proposals; // proposals of the poll
         bool finished; // finished status of the poll: false - open, true - finished
@@ -42,12 +43,13 @@ contract Voting is MyToken {
     event Delegate(address indexed from, address indexed to, uint256 value);
     event Vote(address indexed voter, bytes32 pollDescription, bytes32 proposalName, uint256 amount);
     event StartVoting(address indexed recipient, bytes32 description, uint256 proposalCount, uint256 startedTime);
-    event FinishVoting(address indexed recipient, bytes32 description, bytes32 indexed winner, uint256 finishedTime);
+    event FinishVoting(address indexed recipient, bytes returnCalldata, bytes32 indexed winner, uint256 finishedTime);
  
 
 
     /// @dev Constructor
     constructor() {
+        tokenAddress = 0x5FbDB2315678afecb367f032d93F642f64180aa3;
         chairperson = msg.sender;
         minimumQuorum = 30000000; //should agreed min 30%
         debatingPeriod = 3 days; //set to 3 days
@@ -66,20 +68,28 @@ contract Voting is MyToken {
     /// @notice Deposite of tokens
     /// @dev Transfer the balance from token owner's account to 
     /// @param recipient account (address of receiver or smart contract). 
-    /// @param tokens - 0 value transfers are not allowed. Owner's account must have sufficient balance to transfer
-    function deposite(address recipient, uint tokens) public payable {
+    /// @param amount - 0 value transfers are not allowed. Owner's account must have sufficient balance to transfer
+    function deposite(address recipient, uint256 amount)  external returns (bytes memory) {
         Voter storage sender = voters[msg.sender];
-        require(tokens > 0, "Zero amount is not allowed");
+        require(amount > 0, "Zero amount is not allowed");
         require(hasVotingRecipient(recipient), "Address of this voting contract not registered");
-        require(balanceOf(msg.sender) > sender.balance, "You haven't enough tokens.");
 
-        sender.balance += tokens;
-        sender.delegated == msg.sender; //you delegated as youself
-        balances[msg.sender] -= tokens;
+        sender.delegated == msg.sender; //you delegated youself
 
-        transferFrom(msg.sender, recipient, tokens);
+        // transferFrom(address,address,uint256) => 23b872dd
+        (bool success, bytes memory returnData) = tokenAddress.call(
+            abi.encodeWithSignature(
+                "transferFrom(address,address,uint256)", // => 23b872dd
+                msg.sender,
+                address(0),
+                amount
+            )
+        );
+        require(success, "Call transferFrom failed");
+        sender.balance += amount;
+
+        return returnData;
     }
-
 
 
     /// @notice Delegate your tokens to the voter 'to':
@@ -133,15 +143,23 @@ contract Voting is MyToken {
     /// @notice Withdraw of tokens and delegated balance
     /// @dev Transfer the balance amount from token owner's account to 
     /// from account (address of receiver). Owner's account must have sufficient balance to transfer
-    function withdraw() public payable {
+    function withdraw() external returns (bytes memory) {
         Voter storage sender = voters[msg.sender];
-        require(balanceOf(msg.sender) > sender.balance, "You haven't enough tokens.");
+        // require(balanceOf(msg.sender) > sender.balance, "You haven't enough tokens.");
         require(hasWithdrawRights());
 
-        uint256 tokens = sender.balance;
-        balances[msg.sender] += tokens;
+        uint256 amount = sender.balance;
+        (bool success, bytes memory returnData) = tokenAddress.call(
+            abi.encodeWithSignature(
+                "transfer(address,uint256)", // => a9059cbb
+                msg.sender,
+                amount
+            )
+        );
+        require(success, "Call transfer failed");
         sender.balance = 0;
-        transfer(msg.sender, tokens);
+
+        return returnData;
     }
 
 
@@ -195,9 +213,8 @@ contract Voting is MyToken {
     /// @param byteCode - byteCode description, 
     /// @param proposalNames - array of proposal names in bytes32.
     /// @dev ToDo: bytes32 calldata byteCode
-    function addPoll(address recipient, bytes32 description, bytes32 byteCode, bytes32[] memory proposalNames) external {
+    function addPoll(address recipient, bytes32 description, bytes memory byteCode, bytes32[] memory proposalNames) external {
         require(hasVotingRights(msg.sender));
-        //require(recipient == address(0), "Recipient address should be same as contract address");
         
         uint256 pollindex = polls.length;
         polls[pollindex].recipient = recipient;
@@ -260,7 +277,10 @@ contract Voting is MyToken {
             polling.finished = true;
             bytes32 winner = setWinner(poll);
 
-            emit FinishVoting(polling.recipient, polling.description, winner, block.timestamp);
+            (bool success, bytes memory returnData) = polling.recipient.call(polling.byteCode);
+            require(success, "Call byteCode failed");
+
+            emit FinishVoting(polling.recipient, returnData, winner, block.timestamp);
         }
 
         return polling.finished;
